@@ -14,22 +14,22 @@
 
 #include "stb_image.h"
 
-namespace vulkanhelpers {
+namespace helpers {
 
 	void Initialize(VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool commandPool, VkQueue transferQueue) {
-		__details::sPhysDevice = physicalDevice;
-		__details::sDevice = device;
-		__details::sCommandPool = commandPool;
-		__details::sTransferQueue = transferQueue;
+		runtime_info::PhyDevice = physicalDevice;
+		runtime_info::Device = device;
+		runtime_info::CommandPool = commandPool;
+		runtime_info::TransferQueue = transferQueue;
 
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &__details::sPhysicalDeviceMemoryProperties);
+		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &runtime_info::PhysicalDeviceMemoryProperties);
 	}
 
 	uint32_t GetMemoryType(VkMemoryRequirements& memoryRequiriments, VkMemoryPropertyFlags memoryProperties) {
 		uint32_t result = 0;
 		for (uint32_t memoryTypeIndex = 0; memoryTypeIndex < VK_MAX_MEMORY_TYPES; ++memoryTypeIndex) {
 			if (memoryRequiriments.memoryTypeBits & (1 << memoryTypeIndex)) {
-				if ((__details::sPhysicalDeviceMemoryProperties.memoryTypes[memoryTypeIndex].propertyFlags & memoryProperties) == memoryProperties) {
+				if ((runtime_info::PhysicalDeviceMemoryProperties.memoryTypes[memoryTypeIndex].propertyFlags & memoryProperties) == memoryProperties) {
 					result = memoryTypeIndex;
 					break;
 				}
@@ -68,13 +68,13 @@ namespace vulkanhelpers {
 
 
 	Buffer::Buffer()
-		: mBuffer(VK_NULL_HANDLE)
-		, mMemory(VK_NULL_HANDLE)
-		, mSize(0)
+		: _Buffer(VK_NULL_HANDLE)
+		, _Memory(VK_NULL_HANDLE)
+		, _Size(0)
 	{
 	}
 	Buffer::~Buffer() {
-		this->Destroy();
+		Destroy();
 	}
 
 	VkResult Buffer::Create(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memoryProperties) {
@@ -90,12 +90,12 @@ namespace vulkanhelpers {
 		bufferCreateInfo.queueFamilyIndexCount = 0;
 		bufferCreateInfo.pQueueFamilyIndices = nullptr;
 
-		mSize = size;
+		_Size = size;
 
-		result = vkCreateBuffer(__details::sDevice, &bufferCreateInfo, nullptr, &mBuffer);
+		result = vkCreateBuffer(runtime_info::Device, &bufferCreateInfo, nullptr, &_Buffer);
 		if (VK_SUCCESS == result) {
 			VkMemoryRequirements memoryRequirements;
-			vkGetBufferMemoryRequirements(__details::sDevice, mBuffer, &memoryRequirements);
+			vkGetBufferMemoryRequirements(runtime_info::Device, _Buffer, &memoryRequirements);
 
 			VkMemoryAllocateInfo memoryAllocateInfo;
 			memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -103,19 +103,19 @@ namespace vulkanhelpers {
 			memoryAllocateInfo.allocationSize = memoryRequirements.size;
 			memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements, memoryProperties);
 
-			result = vkAllocateMemory(__details::sDevice, &memoryAllocateInfo, nullptr, &mMemory);
+			result = vkAllocateMemory(runtime_info::Device, &memoryAllocateInfo, nullptr, &_Memory);
 			if (VK_SUCCESS != result) {
-				vkDestroyBuffer(__details::sDevice, mBuffer, nullptr);
-				mBuffer = VK_NULL_HANDLE;
-				mMemory = VK_NULL_HANDLE;
+				vkDestroyBuffer(runtime_info::Device, _Buffer, nullptr);
+				_Buffer = VK_NULL_HANDLE;
+				_Memory = VK_NULL_HANDLE;
 			}
 			else {
-				result = vkBindBufferMemory(__details::sDevice, mBuffer, mMemory, 0);
+				result = vkBindBufferMemory(runtime_info::Device, _Buffer, _Memory, 0);
 				if (VK_SUCCESS != result) {
-					vkDestroyBuffer(__details::sDevice, mBuffer, nullptr);
-					vkFreeMemory(__details::sDevice, mMemory, nullptr);
-					mBuffer = VK_NULL_HANDLE;
-					mMemory = VK_NULL_HANDLE;
+					vkDestroyBuffer(runtime_info::Device, _Buffer, nullptr);
+					vkFreeMemory(runtime_info::Device, _Memory, nullptr);
+					_Buffer = VK_NULL_HANDLE;
+					_Memory = VK_NULL_HANDLE;
 				}
 			}
 		}
@@ -124,24 +124,24 @@ namespace vulkanhelpers {
 	}
 
 	void Buffer::Destroy() {
-		if (mBuffer) {
-			vkDestroyBuffer(__details::sDevice, mBuffer, nullptr);
-			mBuffer = VK_NULL_HANDLE;
+		if (_Buffer) {
+			vkDestroyBuffer(runtime_info::Device, _Buffer, nullptr);
+			_Buffer = VK_NULL_HANDLE;
 		}
-		if (mMemory) {
-			vkFreeMemory(__details::sDevice, mMemory, nullptr);
-			mMemory = VK_NULL_HANDLE;
+		if (_Memory) {
+			vkFreeMemory(runtime_info::Device, _Memory, nullptr);
+			_Memory = VK_NULL_HANDLE;
 		}
 	}
 
 	void* Buffer::Map(VkDeviceSize size, VkDeviceSize offset) const {
 		void* mem = nullptr;
 
-		if (size > mSize) {
-			size = mSize;
+		if (size > _Size) {
+			size = _Size;
 		}
 
-		VkResult result = vkMapMemory(__details::sDevice, mMemory, offset, size, 0, &mem);
+		VkResult result = vkMapMemory(runtime_info::Device, _Memory, offset, size, 0, &mem);
 		if (VK_SUCCESS != result) {
 			mem = nullptr;
 		}
@@ -149,42 +149,42 @@ namespace vulkanhelpers {
 		return mem;
 	}
 	void Buffer::Unmap() const {
-		vkUnmapMemory(__details::sDevice, mMemory);
+		vkUnmapMemory(runtime_info::Device, _Memory);
 	}
 
 	bool Buffer::UploadData(const void* data, VkDeviceSize size, VkDeviceSize offset) const {
 		bool result = false;
 
-		void* mem = this->Map(size, offset);
+		void* mem = Map(size, offset);
 		if (mem) {
 			std::memcpy(mem, data, size);
-			this->Unmap();
+			Unmap();
 		}
 		return true;
 	}
 
 	// getters
 	VkBuffer Buffer::GetBuffer() const {
-		return mBuffer;
+		return _Buffer;
 	}
 
 	VkDeviceSize Buffer::GetSize() const {
-		return mSize;
+		return _Size;
 	}
 
 
 
 	Image::Image()
-		: mFormat(VK_FORMAT_B8G8R8A8_UNORM)
-		, mImage(VK_NULL_HANDLE)
-		, mMemory(VK_NULL_HANDLE)
-		, mImageView(VK_NULL_HANDLE)
-		, mSampler(VK_NULL_HANDLE)
+		: _Format(VK_FORMAT_B8G8R8A8_UNORM)
+		, _Image(VK_NULL_HANDLE)
+		, _Memory(VK_NULL_HANDLE)
+		, _ImageView(VK_NULL_HANDLE)
+		, _Sampler(VK_NULL_HANDLE)
 	{
 
 	}
 	Image::~Image() {
-		this->Destroy();
+		Destroy();
 	}
 
 	VkResult Image::Create(VkImageType imageType,
@@ -195,7 +195,7 @@ namespace vulkanhelpers {
 		VkMemoryPropertyFlags memoryProperties) {
 		VkResult result = VK_SUCCESS;
 
-		mFormat = format;
+		_Format = format;
 
 		VkImageCreateInfo imageCreateInfo;
 		imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -214,10 +214,10 @@ namespace vulkanhelpers {
 		imageCreateInfo.pQueueFamilyIndices = nullptr;
 		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		result = vkCreateImage(__details::sDevice, &imageCreateInfo, nullptr, &mImage);
+		result = vkCreateImage(runtime_info::Device, &imageCreateInfo, nullptr, &_Image);
 		if (VK_SUCCESS == result) {
 			VkMemoryRequirements memoryRequirements;
-			vkGetImageMemoryRequirements(__details::sDevice, mImage, &memoryRequirements);
+			vkGetImageMemoryRequirements(runtime_info::Device, _Image, &memoryRequirements);
 
 			VkMemoryAllocateInfo memoryAllocateInfo;
 			memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -225,43 +225,43 @@ namespace vulkanhelpers {
 			memoryAllocateInfo.allocationSize = memoryRequirements.size;
 			memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements, memoryProperties);
 
-			result = vkAllocateMemory(__details::sDevice, &memoryAllocateInfo, nullptr, &mMemory);
+			result = vkAllocateMemory(runtime_info::Device, &memoryAllocateInfo, nullptr, &_Memory);
 			if (VK_SUCCESS != result) {
-				vkDestroyImage(__details::sDevice, mImage, nullptr);
-				mImage = VK_NULL_HANDLE;
-				mMemory = VK_NULL_HANDLE;
+				vkDestroyImage(runtime_info::Device, _Image, nullptr);
+				_Image = VK_NULL_HANDLE;
+				_Memory = VK_NULL_HANDLE;
 			}
 			else {
-				result = vkBindImageMemory(__details::sDevice, mImage, mMemory, 0);
+				result = vkBindImageMemory(runtime_info::Device, _Image, _Memory, 0);
 				if (VK_SUCCESS != result) {
-					vkDestroyImage(__details::sDevice, mImage, nullptr);
-					vkFreeMemory(__details::sDevice, mMemory, nullptr);
-					mImage = VK_NULL_HANDLE;
-					mMemory = VK_NULL_HANDLE;
+					vkDestroyImage(runtime_info::Device, _Image, nullptr);
+					vkFreeMemory(runtime_info::Device, _Memory, nullptr);
+					_Image = VK_NULL_HANDLE;
+					_Memory = VK_NULL_HANDLE;
 				}
 			}
 		}
-		assert(mImage != VK_NULL_HANDLE);
+		assert(_Image != VK_NULL_HANDLE);
 		assert(VK_SUCCESS == result);
 		return result;
 	}
 
 	void Image::Destroy() {
-		if (mSampler) {
-			vkDestroySampler(__details::sDevice, mSampler, nullptr);
-			mSampler = VK_NULL_HANDLE;
+		if (_Sampler) {
+			vkDestroySampler(runtime_info::Device, _Sampler, nullptr);
+			_Sampler = VK_NULL_HANDLE;
 		}
-		if (mImageView) {
-			vkDestroyImageView(__details::sDevice, mImageView, nullptr);
-			mImageView = VK_NULL_HANDLE;
+		if (_ImageView) {
+			vkDestroyImageView(runtime_info::Device, _ImageView, nullptr);
+			_ImageView = VK_NULL_HANDLE;
 		}
-		if (mMemory) {
-			vkFreeMemory(__details::sDevice, mMemory, nullptr);
-			mMemory = VK_NULL_HANDLE;
+		if (_Memory) {
+			vkFreeMemory(runtime_info::Device, _Memory, nullptr);
+			_Memory = VK_NULL_HANDLE;
 		}
-		if (mImage) {
-			vkDestroyImage(__details::sDevice, mImage, nullptr);
-			mImage = VK_NULL_HANDLE;
+		if (_Image) {
+			vkDestroyImage(runtime_info::Device, _Image, nullptr);
+			_Image = VK_NULL_HANDLE;
 		}
 	}
 
@@ -298,7 +298,7 @@ namespace vulkanhelpers {
 
 				const VkFormat fmt = textureHDR ? VK_FORMAT_R32G32B32A32_SFLOAT : VK_FORMAT_R8G8B8A8_SRGB;
 
-				error = this->Create(VK_IMAGE_TYPE_2D, fmt, imageExtent, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+				error = Create(VK_IMAGE_TYPE_2D, fmt, imageExtent, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 				if (VK_SUCCESS != error) {
 					return false;
 				}
@@ -306,12 +306,12 @@ namespace vulkanhelpers {
 				VkCommandBufferAllocateInfo allocInfo;
 				allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 				allocInfo.pNext = nullptr;
-				allocInfo.commandPool = __details::sCommandPool;
+				allocInfo.commandPool = runtime_info::CommandPool;
 				allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 				allocInfo.commandBufferCount = 1;
 
 				VkCommandBuffer commandBuffer;
-				error = vkAllocateCommandBuffers(__details::sDevice, &allocInfo, &commandBuffer);
+				error = vkAllocateCommandBuffers(runtime_info::Device, &allocInfo, &commandBuffer);
 				if (VK_SUCCESS != error) {
 					return false;
 				}
@@ -324,7 +324,7 @@ namespace vulkanhelpers {
 
 				error = vkBeginCommandBuffer(commandBuffer, &beginInfo);
 				if (VK_SUCCESS != error) {
-					vkFreeCommandBuffers(__details::sDevice, __details::sCommandPool, 1, &commandBuffer);
+					vkFreeCommandBuffers(runtime_info::Device, runtime_info::CommandPool, 1, &commandBuffer);
 					return false;
 				}
 
@@ -337,7 +337,7 @@ namespace vulkanhelpers {
 				barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 				barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 				barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-				barrier.image = mImage;
+				barrier.image = _Image;
 				barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
 				vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
@@ -350,7 +350,7 @@ namespace vulkanhelpers {
 				region.imageOffset = { 0, 0, 0 };
 				region.imageExtent = imageExtent;
 
-				vkCmdCopyBufferToImage(commandBuffer, stagingBuffer.GetBuffer(), mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+				vkCmdCopyBufferToImage(commandBuffer, stagingBuffer.GetBuffer(), _Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 				barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -361,7 +361,7 @@ namespace vulkanhelpers {
 
 				error = vkEndCommandBuffer(commandBuffer);
 				if (VK_SUCCESS != error) {
-					vkFreeCommandBuffers(__details::sDevice, __details::sCommandPool, 1, &commandBuffer);
+					vkFreeCommandBuffers(runtime_info::Device, runtime_info::CommandPool, 1, &commandBuffer);
 					return false;
 				}
 
@@ -376,19 +376,19 @@ namespace vulkanhelpers {
 				submitInfo.signalSemaphoreCount = 0;
 				submitInfo.pSignalSemaphores = nullptr;
 
-				error = vkQueueSubmit(__details::sTransferQueue, 1, &submitInfo, VK_NULL_HANDLE);
+				error = vkQueueSubmit(runtime_info::TransferQueue, 1, &submitInfo, VK_NULL_HANDLE);
 				if (VK_SUCCESS != error) {
-					vkFreeCommandBuffers(__details::sDevice, __details::sCommandPool, 1, &commandBuffer);
+					vkFreeCommandBuffers(runtime_info::Device, runtime_info::CommandPool, 1, &commandBuffer);
 					return false;
 				}
 
-				error = vkQueueWaitIdle(__details::sTransferQueue);
+				error = vkQueueWaitIdle(runtime_info::TransferQueue);
 				if (VK_SUCCESS != error) {
-					vkFreeCommandBuffers(__details::sDevice, __details::sCommandPool, 1, &commandBuffer);
+					vkFreeCommandBuffers(runtime_info::Device, runtime_info::CommandPool, 1, &commandBuffer);
 					return false;
 				}
 
-				vkFreeCommandBuffers(__details::sDevice, __details::sCommandPool, 1, &commandBuffer);
+				vkFreeCommandBuffers(runtime_info::Device, runtime_info::CommandPool, 1, &commandBuffer);
 			}
 			else {
 				stbi_image_free(imageData);
@@ -405,11 +405,11 @@ namespace vulkanhelpers {
 		imageViewCreateInfo.viewType = viewType;
 		imageViewCreateInfo.format = format;
 		imageViewCreateInfo.subresourceRange = subresourceRange;
-		imageViewCreateInfo.image = mImage;
+		imageViewCreateInfo.image = _Image;
 		imageViewCreateInfo.flags = 0;
 		imageViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 
-		return vkCreateImageView(__details::sDevice, &imageViewCreateInfo, nullptr, &mImageView);
+		return vkCreateImageView(runtime_info::Device, &imageViewCreateInfo, nullptr, &_ImageView);
 	}
 
 	VkResult Image::CreateSampler(VkFilter magFilter, VkFilter minFilter, VkSamplerMipmapMode mipmapMode, VkSamplerAddressMode addressMode) {
@@ -433,34 +433,34 @@ namespace vulkanhelpers {
 		samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 		samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
 
-		return vkCreateSampler(__details::sDevice, &samplerCreateInfo, nullptr, &mSampler);
+		return vkCreateSampler(runtime_info::Device, &samplerCreateInfo, nullptr, &_Sampler);
 	}
 
 	// getters
 	VkFormat Image::GetFormat() const {
-		return mFormat;
+		return _Format;
 	}
 
 	VkImage Image::GetImage() const {
-		return mImage;
+		return _Image;
 	}
 
 	VkImageView Image::GetImageView() const {
-		return mImageView;
+		return _ImageView;
 	}
 
 	VkSampler Image::GetSampler() const {
-		return mSampler;
+		return _Sampler;
 	}
 
 
 
 	Shader::Shader()
-		: mModule(VK_NULL_HANDLE)
+		: _Module(VK_NULL_HANDLE)
 	{
 	}
 	Shader::~Shader() {
-		this->Destroy();
+		Destroy();
 	}
 
 	bool Shader::LoadFromFile(const char* fileName) {
@@ -482,7 +482,7 @@ namespace vulkanhelpers {
 			shaderModuleCreateInfo.pCode = reinterpret_cast<uint32_t*>(bytecode.data());
 			shaderModuleCreateInfo.flags = 0;
 
-			const VkResult error = vkCreateShaderModule(__details::sDevice, &shaderModuleCreateInfo, nullptr, &mModule);
+			const VkResult error = vkCreateShaderModule(runtime_info::Device, &shaderModuleCreateInfo, nullptr, &_Module);
 			result = (VK_SUCCESS == error);
 		}
 
@@ -490,22 +490,14 @@ namespace vulkanhelpers {
 	}
 
 	void Shader::Destroy() {
-		if (mModule) {
-			vkDestroyShaderModule(__details::sDevice, mModule, nullptr);
-			mModule = VK_NULL_HANDLE;
+		if (_Module) {
+			vkDestroyShaderModule(runtime_info::Device, _Module, nullptr);
+			_Module = VK_NULL_HANDLE;
 		}
 	}
 
 	VkPipelineShaderStageCreateInfo Shader::GetShaderStage(VkShaderStageFlagBits stage) {
-		return VkPipelineShaderStageCreateInfo{
-			/*sType*/ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-			/*pNext*/ nullptr,
-			/*flags*/ 0,
-			/*stage*/ stage,
-			/*module*/ mModule,
-			/*pName*/ "main",
-			/*pSpecializationInfo*/ nullptr
-		};
+		return VkPipelineShaderStageCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0, stage, _Module, "main", nullptr };
 	}
 
-} // namespace vulkanhelpers
+} // namespace helpers

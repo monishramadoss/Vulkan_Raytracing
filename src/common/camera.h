@@ -32,13 +32,13 @@ private:
 	void        MakeTransform();
 
 private:
-	Recti   mViewport;
-	float   mFovY;
-	float   mNearZ;
-	float   mFarZ;
-	vec3    mPosition;
-	vec3    mDirection;
-	quat    mRotation;
-	mat4    mProjection;
-	mat4    mTransform;
+	Recti   _Viewport;
+	float   _FovY;
+	float   _NearZ;
+	float   _FarZ;
+	vec3    _Position;
+	vec3    _Direction;
+	quat    _Rotation;
+	mat4    _Projection;
+	mat4    _Transform;
 };

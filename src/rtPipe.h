@@ -14,17 +14,17 @@ struct RTMesh {
 	uint32_t                    numVertices;
 	uint32_t                    numFaces;
 
-	vulkanhelpers::Buffer       positions;
-	vulkanhelpers::Buffer       attribs;
-	vulkanhelpers::Buffer       indices;
-	vulkanhelpers::Buffer       faces;
-	vulkanhelpers::Buffer       matIDs;
+	helpers::Buffer       positions;
+	helpers::Buffer       attribs;
+	helpers::Buffer       indices;
+	helpers::Buffer       faces;
+	helpers::Buffer       matIDs;
 
 	RTAccelerationStructure     blas;
 };
 
 struct RTMaterial {
-	vulkanhelpers::Image        texture;
+	helpers::Image        texture;
 };
 
 struct RTScene {
@@ -40,10 +40,10 @@ struct RTScene {
 };
 
 
-class SBTHelper {
+class RTXHelper {
 public:
-	SBTHelper();
-	~SBTHelper() = default;
+	RTXHelper();
+	~RTXHelper() = default;
 
 	void        Initialize(const uint32_t numHitGroups, const uint32_t numMissGroups, const uint32_t shaderHeaderSize);
 	void        Destroy();
@@ -52,12 +52,12 @@ public:
 	void        AddStageToMissGroup(const VkPipelineShaderStageCreateInfo& stage, const uint32_t groupIndex);
 
 	uint32_t    GetGroupsStride() const;
-	uint32_t    GetNumGroups() const;
+	uint32_t    GetNu_Groups() const;
 	uint32_t    GetRaygenOffset() const;
 	uint32_t    GetHitGroupsOffset() const;
 	uint32_t    GetMissGroupsOffset() const;
 
-	uint32_t                                   GetNumStages() const;
+	uint32_t                                   GetNu_Stages() const;
 	const VkPipelineShaderStageCreateInfo* GetStages() const;
 	const VkRayTracingShaderGroupCreateInfoNV* GetGroups() const;
 
@@ -66,18 +66,18 @@ public:
 	VkBuffer    GetSBTBuffer() const;
 
 private:
-	uint32_t                                   mShaderHeaderSize;
-	uint32_t                                   mNumHitGroups;
-	uint32_t                                   mNumMissGroups;
-	Array<uint32_t>                            mNumHitShaders;
-	Array<uint32_t>                            mNumMissShaders;
-	Array<VkPipelineShaderStageCreateInfo>     mStages;
-	Array<VkRayTracingShaderGroupCreateInfoNV> mGroups;
-	vulkanhelpers::Buffer                      mSBT;
+	uint32_t                                   _ShaderHeaderSize;
+	uint32_t                                   _NumHitGroups;
+	uint32_t                                   _NumMissGroups;
+	Array<uint32_t>                            _NumHitShaders;
+	Array<uint32_t>                            _NumMissShaders;
+	Array<VkPipelineShaderStageCreateInfo>     _Stages;
+	Array<VkRayTracingShaderGroupCreateInfoNV> _Groups;
+	helpers::Buffer                      rtxHelper;
 };
 
 
-class RtxApp : public VulkanApp {
+class RtxApp : public vulkanapp {
 public:
 	RtxApp();
 	~RtxApp();
@@ -108,23 +108,23 @@ private:
 	void UpdateDescriptorSets();
 
 private:
-	Array<VkDescriptorSetLayout>    mRTDescriptorSetsLayouts;
-	VkPipelineLayout                mRTPipelineLayout;
-	VkPipeline                      mRTPipeline;
-	VkDescriptorPool                mRTDescriptorPool;
-	Array<VkDescriptorSet>          mRTDescriptorSets;
+	Array<VkDescriptorSetLayout>    _RTXDescriptorSetsLayouts;
+	VkPipelineLayout                _RTXPipelineLayout;
+	VkPipeline                      _RTXPipeline;
+	VkDescriptorPool                _RTXDescriptorPool;
+	Array<VkDescriptorSet>          _RTXDescriptorSets;
 
-	SBTHelper                       mSBT;
+	RTXHelper                       rtxHelper;
 
-	RTScene                         mScene;
+	RTScene                         _Scene;
 
-	Camera                          mCamera;
-	vulkanhelpers::Buffer           mCameraBuffer;
-	bool                            mWKeyDown;
-	bool                            mAKeyDown;
-	bool                            mSKeyDown;
-	bool                            mDKeyDown;
-	bool                            mShiftDown;
-	bool                            mLMBDown;
-	vec2                            mCursorPos;
+	Camera                          _Camera;
+	helpers::Buffer           _CameraBuffer;
+	bool                            WKeyDown;
+	bool                            AKeyDown;
+	bool                            SKeyDown;
+	bool                            DKeyDown;
+	bool                            ShiftDown;
+	bool                            LMBDown;
+	vec2                            CursorPos;
 };

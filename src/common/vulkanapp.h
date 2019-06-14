@@ -3,7 +3,7 @@
 #include "utils.h"
 
 
-struct AppSettings {
+struct settings {
 	std::string name;
 	uint32_t    resolutionX;
 	uint32_t    resolutionY;
@@ -27,10 +27,10 @@ struct FPSMeter {
 	float   GetFrameTime() const;
 };
 
-class VulkanApp {
+class vulkanapp {
 public:
-	VulkanApp();
-	virtual ~VulkanApp();
+	vulkanapp();
+	virtual ~vulkanapp();
 
 	void    Run();
 
@@ -66,34 +66,34 @@ protected:
 	virtual void Update(const size_t imageIndex, const float dt);
 
 protected:
-	AppSettings             mSettings;
-	GLFWwindow* mWindow;
+	settings             _Settings;
+	GLFWwindow* _Window;
 
-	VkInstance              mInstance;
-	VkPhysicalDevice        mPhysicalDevice;
-	VkDevice                mDevice;
-	VkSurfaceFormatKHR      mSurfaceFormat;
-	VkSurfaceKHR            mSurface;
-	VkSwapchainKHR          mSwapchain;
-	Array<VkImage>          mSwapchainImages;
-	Array<VkImageView>      mSwapchainImageViews;
-	Array<VkFence>          mWaitForFrameFences;
-	VkCommandPool           mCommandPool;
-	vulkanhelpers::Image    mOffscreenImage;
-	Array<VkCommandBuffer>  mCommandBuffers;
-	VkSemaphore             mSemaphoreImageAcquired;
-	VkSemaphore             mSemaphoreRenderFinished;
+	VkInstance              _Instance;
+	VkPhysicalDevice        _PhysicalDevice;
+	VkDevice                _Device;
+	VkSurfaceFormatKHR      _SurfaceFormat;
+	VkSurfaceKHR            _Surface;
+	VkSwapchainKHR          _Swapchain;
+	Array<VkImage>          _SwapchainImages;
+	Array<VkImageView>      _SwapchainImageViews;
+	Array<VkFence>          _WaitForFrameFences;
+	VkCommandPool           _CommandPool;
+	helpers::Image    _OffscreenImage;
+	Array<VkCommandBuffer>  _CommandBuffers;
+	VkSemaphore             _SemaphoreImageAcquired;
+	VkSemaphore             _SemaphoreRenderFinished;
 
-	uint32_t                mGraphicsQueueFamilyIndex;
-	uint32_t                mComputeQueueFamilyIndex;
-	uint32_t                mTransferQueueFamilyIndex;
-	VkQueue                 mGraphicsQueue;
-	VkQueue                 mComputeQueue;
-	VkQueue                 mTransferQueue;
+	uint32_t                _GraphicsQueueFamilyIndex;
+	uint32_t                _ComputeQueueFamilyIndex;
+	uint32_t                _TransferQueueFamilyIndex;
+	VkQueue                 _GraphicsQueue;
+	VkQueue                 _ComputeQueue;
+	VkQueue                 _TransferQueue;
 
 	// RTX stuff
-	VkPhysicalDeviceRayTracingPropertiesNV mRTProps;
+	VkPhysicalDeviceRayTracingPropertiesNV _RTXProps;
 
 	// FPS meter
-	FPSMeter                mFPSMeter;
+	FPSMeter                fpsMeter;
 };

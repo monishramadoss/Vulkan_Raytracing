@@ -12,15 +12,15 @@
 } while (false);
 
 
-namespace vulkanhelpers {
+namespace helpers {
 
-	namespace __details {
-		static VkPhysicalDevice                 sPhysDevice;
-		static VkDevice                         sDevice;
-		static VkCommandPool                    sCommandPool;
-		static VkQueue                          sTransferQueue;
-		static VkPhysicalDeviceMemoryProperties sPhysicalDeviceMemoryProperties;
-	} // namespace __details
+	namespace runtime_info {
+		static VkPhysicalDevice                 PhyDevice;
+		static VkDevice                         Device;
+		static VkCommandPool                    CommandPool;
+		static VkQueue                          TransferQueue;
+		static VkPhysicalDeviceMemoryProperties PhysicalDeviceMemoryProperties;
+	} // namespace runtime_info
 
 	void     Initialize(VkPhysicalDevice physicalDevice, VkDevice device, VkCommandPool commandPool, VkQueue transferQueue);
 	uint32_t GetMemoryType(VkMemoryRequirements& memoryRequiriments, VkMemoryPropertyFlags memoryProperties);
@@ -51,9 +51,9 @@ namespace vulkanhelpers {
 		VkDeviceSize    GetSize() const;
 
 	private:
-		VkBuffer        mBuffer;
-		VkDeviceMemory  mMemory;
-		VkDeviceSize    mSize;
+		VkBuffer        _Buffer;
+		VkDeviceMemory  _Memory;
+		VkDeviceSize    _Size;
 	};
 
 
@@ -81,11 +81,11 @@ namespace vulkanhelpers {
 		VkSampler   GetSampler() const;
 
 	private:
-		VkFormat        mFormat;
-		VkImage         mImage;
-		VkDeviceMemory  mMemory;
-		VkImageView     mImageView;
-		VkSampler       mSampler;
+		VkFormat        _Format;
+		VkImage         _Image;
+		VkDeviceMemory  _Memory;
+		VkImageView     _ImageView;
+		VkSampler       _Sampler;
 	};
 
 
@@ -100,7 +100,7 @@ namespace vulkanhelpers {
 		VkPipelineShaderStageCreateInfo GetShaderStage(VkShaderStageFlagBits stage);
 
 	private:
-		VkShaderModule  mModule;
+		VkShaderModule  _Module;
 	};
 
-} // namespace vulkanhelpers
+} // namespace helpers

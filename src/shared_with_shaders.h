@@ -32,8 +32,8 @@
 #define SWS_LOC_HIT_ATTRIBS             1
 #define SWS_LOC_SHADOW_RAY              2
 
-#define SWS_MAX_RECURSION               8
-#define SWS_MAX_RAYS					8
+#define SWS_MAX_RECURSION               16
+#define SWS_MAX_RAYS					16
 
 #define OBJECT_ID_BOX1					0.0f
 #define OBJECT_ID_BOX2					1.0f
