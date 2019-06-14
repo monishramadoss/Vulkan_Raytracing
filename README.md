@@ -7,7 +7,10 @@ All include files are included in the directory.
 
 Open Visual Studion sln file (may need to point Linker to correct GLFW library)
 
-
+### add glfw lib to additional library directories in Linker -> General
+![alt text](https://github.com/monishramadoss/cs114_Final/blob/master/pics/Capture.PNG)
+### add glfw3.lib to Additional dependencies in Linker -> Input
+![alt text](https://github.com/monishramadoss/cs114_Final/blob/master/pics/Capture1.PNG)
 ### Requires
 Needs Nvidia 1070 or newer
 
